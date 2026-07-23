@@ -90,3 +90,9 @@ ARMS: tuple[Arm, ...] = (
 )
 
 ARMS_BY_ID: dict[str, Arm] = {arm.id: arm for arm in ARMS}
+
+# The one arm whose prompt depends on injected content (fixed worked
+# examples) rather than being fully static text. Referenced by id here,
+# rather than hardcoding the "T6" string at each call site, so a future
+# rename of the arm can't silently desync prompt_builder.py from runner.py.
+FEW_SHOT_ARM_ID = "T6"

@@ -7,7 +7,7 @@ directly, so the identical-format-instruction invariant can't drift.
 from __future__ import annotations
 
 from harness.schema import Question
-from prereg.arms import ARMS_BY_ID, FORMAT_INSTRUCTION, Arm
+from prereg.arms import ARMS_BY_ID, FEW_SHOT_ARM_ID, FORMAT_INSTRUCTION, Arm
 
 
 def format_few_shot_block(examples: tuple[tuple[str, str], ...]) -> str:
@@ -41,5 +41,5 @@ def build_prompt(
         question=question.prompt,
         format_instruction=FORMAT_INSTRUCTION[question.answer_format],
         domain=question.domain,
-        examples=format_few_shot_block(few_shot_examples) if arm_id == "T6" else "",
+        examples=format_few_shot_block(few_shot_examples) if arm_id == FEW_SHOT_ARM_ID else "",
     )
