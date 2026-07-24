@@ -3,6 +3,11 @@
 This is "task set 3" in the project design: a contamination-free control.
 Problems are generated fresh from a seeded PRNG, so by construction they
 cannot appear in any model's training data.
+
+Operand range and step count were widened after the pilot (P2) showed 100%
+accuracy on every single arm/model combo at the original difficulty
+(2-digit operands, 2-4 steps) -- a ceiling effect with zero variance to
+measure anything against. See DECISIONS.md.
 """
 from __future__ import annotations
 
@@ -11,10 +16,10 @@ import random
 from harness.schema import AnswerFormat, Question, TaskType
 
 _OPERATORS = ("+", "-", "*")
-_MIN_OPERAND = 2
-_MAX_OPERAND = 50
-_MIN_STEPS = 2
-_MAX_STEPS = 4
+_MIN_OPERAND = 10
+_MAX_OPERAND = 999
+_MIN_STEPS = 5
+_MAX_STEPS = 7
 
 _OP_WORDS = {
     "+": "add",

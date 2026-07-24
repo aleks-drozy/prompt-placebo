@@ -20,6 +20,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from harness.anthropic_client import build_real_batch_client
 from harness.cost_meter import CostMeter
 from harness.datasets import fetch_logic_questions, fetch_math_questions
 from harness.runner import BatchRunner, build_run_grid
@@ -132,32 +133,6 @@ def _total_recorded_cost_usd(runner) -> float:
     return total
 
 
-def _real_batches_client():
-    """Adapt anthropic.Anthropic().messages.batches to harness.runner.BatchClient."""
-    import anthropic
-    from anthropic.types.message_create_params import MessageCreateParamsNonStreaming
-    from anthropic.types.messages.batch_create_params import Request
-
-    batches = anthropic.Anthropic().messages.batches
-
-    class _Adapter:
-        def create(self, requests):
-            return batches.create(
-                requests=[
-                    Request(custom_id=r["custom_id"], params=MessageCreateParamsNonStreaming(**r["params"]))
-                    for r in requests
-                ]
-            )
-
-        def retrieve(self, batch_id):
-            return batches.retrieve(batch_id)
-
-        def results(self, batch_id):
-            return batches.results(batch_id)
-
-    return _Adapter()
-
-
 def main() -> None:
     load_dotenv()
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -173,7 +148,7 @@ def main() -> None:
 
     cells = build_run_grid(all_questions)
     cost_meter = CostMeter(cap_usd=BUDGET_CAP_USD, batch=True)
-    runner = BatchRunner(_real_batches_client(), cost_meter, RESULTS_PATH, STATE_PATH)
+    runner = BatchRunner(build_real_batch_client(), cost_meter, RESULTS_PATH, STATE_PATH)
 
     print(f"Pilot grid: {len(cells)} requests across {len(all_questions)} questions.")
     runner.run(cells, few_shot_examples=FEW_SHOT_EXAMPLES)
