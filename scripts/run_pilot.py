@@ -5,18 +5,16 @@ the Anthropic Batches API the moment it's executed. It requires a real
 ANTHROPIC_API_KEY (see .env.example) and should only be run with explicit
 sign-off, since it spends real money against the project's hard €25 cap.
 
-TODO before this can run for real: FEW_SHOT_EXAMPLES below has placeholder
-math examples and empty logic/procedural examples. The T6 arm needs 3 FIXED
-worked examples per task set, frozen at pre-registration time (see
-prereg/arms.py's module docstring: "fixed per task set, same for every
-question" -- these are not meant to be authored casually, since they shape
-a whole experimental arm).
+Idempotent: re-running while a batch is still in flight just polls it (see
+BatchRunner's own resumability contract); re-running after it's already
+fully recorded costs nothing extra and changes nothing.
 
 Usage:
     python scripts/run_pilot.py
 """
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -97,6 +95,43 @@ FEW_SHOT_EXAMPLES = {
 }
 
 
+def _run_is_fully_recorded(runner, cells) -> bool:
+    """Whether every cell this run is responsible for has already landed in
+    the results file. Checked from the caller's side (rather than having
+    BatchRunner.run() return a status) so the already-reviewed, tested
+    runner module doesn't need a new return contract for what's purely a
+    driver-script reporting concern."""
+    if runner.state_path.exists():
+        return False  # a batch is still submitted/in-flight
+    if not runner.results_path.exists():
+        return False  # nothing recorded yet at all
+    recorded = {
+        json.loads(line)["custom_id"]
+        for line in runner.results_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    }
+    return all(cell.custom_id in recorded for cell in cells)
+
+
+def _total_recorded_cost_usd(runner) -> float:
+    """True cumulative spend across every call so far, recomputed from the
+    results file's own recorded token counts -- NOT cost_meter.total_spent_usd,
+    which only reflects whatever this single process instance has recorded
+    (a fresh CostMeter is constructed every time this script runs, so its
+    in-memory total is never actually cumulative across separate runs)."""
+    if not runner.results_path.exists():
+        return 0.0
+    total = 0.0
+    for line in runner.results_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        record = json.loads(line)
+        total += runner.cost_meter.estimate_cost(
+            record["model_id"], record["input_tokens"], record["output_tokens"]
+        )
+    return total
+
+
 def _real_batches_client():
     """Adapt anthropic.Anthropic().messages.batches to harness.runner.BatchClient."""
     import anthropic
@@ -142,9 +177,12 @@ def main() -> None:
 
     print(f"Pilot grid: {len(cells)} requests across {len(all_questions)} questions.")
     runner.run(cells, few_shot_examples=FEW_SHOT_EXAMPLES)
-    print(f"Spent so far: {cost_meter.total_spent_usd:.4f} / {BUDGET_CAP_USD:.2f} USD")
+    print(f"Total spent so far: {_total_recorded_cost_usd(runner):.4f} USD (cap: {BUDGET_CAP_USD:.2f})")
     print(f"Results so far: {RESULTS_PATH}")
-    print("Batch may still be processing -- re-run this script to poll and continue.")
+    if _run_is_fully_recorded(runner, cells):
+        print("All results recorded -- pilot complete.")
+    else:
+        print("Batch still in flight -- re-run this script to poll and continue.")
 
 
 if __name__ == "__main__":
