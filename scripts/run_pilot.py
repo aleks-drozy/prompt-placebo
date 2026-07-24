@@ -35,17 +35,65 @@ BUDGET_CAP_USD = 25.0
 RESULTS_PATH = Path("data/pilot_results.jsonl")
 STATE_PATH = Path("data/pilot_batch_state.json")
 
-# TODO: replace with the real, pre-registered worked examples before this
-# script is run for real. These three math examples are placeholders; logic
-# and procedural have none yet at all.
+# Fixed per task set, same for every question (see prereg/arms.py's module
+# docstring) -- original questions, not copied from the real GSM8K/BBH pool,
+# so there's no risk of a few-shot example leaking an actual eval question.
+# Reviewable/editable up until the pre-registration is frozen.
 FEW_SHOT_EXAMPLES = {
     TaskType.MATH: (
-        ("What is 15 + 27?", "ANSWER: 42"),
-        ("What is 100 - 37?", "ANSWER: 63"),
-        ("What is 8 * 9?", "ANSWER: 72"),
+        (
+            "A bakery sells 12 muffins in the morning and 18 muffins in the "
+            "afternoon. How many muffins did the bakery sell in total?",
+            "The bakery sold 12 muffins in the morning and 18 in the afternoon. "
+            "12 + 18 = 30.\nANSWER: 30",
+        ),
+        (
+            "Maria has 5 boxes of pencils, and each box contains 8 pencils. "
+            "How many pencils does Maria have in total?",
+            "Maria has 5 boxes with 8 pencils each. 5 * 8 = 40.\nANSWER: 40",
+        ),
+        (
+            "A train travels 60 miles in the first hour and 45 miles in the "
+            "second hour. How many miles did the train travel in total?",
+            "The train travels 60 miles then 45 miles. 60 + 45 = 105.\nANSWER: 105",
+        ),
     ),
-    TaskType.LOGIC: (),
-    TaskType.PROCEDURAL: (),
+    TaskType.LOGIC: (
+        (
+            "Today is the first day of March, 2021. What is the date one week "
+            "from today in MM/DD/YYYY?\nOptions:\n(A) 03/08/2021\n(B) 03/01/2021\n"
+            "(C) 02/08/2021\n(D) 04/08/2021",
+            "Today is 03/01/2021. One week later is 7 days after March 1st, "
+            "which is March 8th, 2021.\nANSWER: A",
+        ),
+        (
+            "Yesterday was December 31, 2019. What is the date today in "
+            "MM/DD/YYYY?\nOptions:\n(A) 01/01/2020\n(B) 12/31/2019\n"
+            "(C) 01/01/2019\n(D) 02/01/2020",
+            "Yesterday was 12/31/2019, so today is the next day, 01/01/2020.\nANSWER: A",
+        ),
+        (
+            "Today is New Year's Eve of 1999. What is the date tomorrow in "
+            "MM/DD/YYYY?\nOptions:\n(A) 01/01/2000\n(B) 12/31/1999\n"
+            "(C) 01/01/1999\n(D) 12/31/2000",
+            "New Year's Eve of 1999 is 12/31/1999. Tomorrow is 01/01/2000.\nANSWER: A",
+        ),
+    ),
+    TaskType.PROCEDURAL: (
+        (
+            "Start with 10, then add 5, then multiply by 2. What is the final result?",
+            "10 + 5 = 15. Then 15 * 2 = 30.\nANSWER: 30",
+        ),
+        (
+            "Begin with the number 20, then subtract 8. What number do you end up with?",
+            "20 - 8 = 12.\nANSWER: 12",
+        ),
+        (
+            "Take 6 as your starting number, then multiply by 3, then subtract 4. "
+            "What is the result?",
+            "6 * 3 = 18. Then 18 - 4 = 14.\nANSWER: 14",
+        ),
+    ),
 }
 
 
