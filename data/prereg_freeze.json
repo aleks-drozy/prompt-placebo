@@ -1,0 +1,98 @@
+{
+  "config_hash": "9b8af804d62b0fec771fac4a2b7d86acc9f7fb27c639965b3fc98710482eedad",
+  "frozen_config": {
+    "arms": [
+      {
+        "id": "B",
+        "name": "baseline",
+        "template": "{question}\n\n{format_instruction}"
+      },
+      {
+        "id": "T1",
+        "name": "zero_shot_cot",
+        "template": "{question}\n\n{format_instruction}\n\nThink step by step before answering."
+      },
+      {
+        "id": "T2",
+        "name": "role_prompt",
+        "template": "You are a world-class expert in {domain}.\n\n{question}\n\n{format_instruction}"
+      },
+      {
+        "id": "T3",
+        "name": "emotional_stakes",
+        "template": "{question}\n\n{format_instruction}\n\nThis is very important to my career."
+      },
+      {
+        "id": "T4",
+        "name": "incentive",
+        "template": "{question}\n\n{format_instruction}\n\nI'll tip $200 for a correct answer."
+      },
+      {
+        "id": "T5",
+        "name": "politeness",
+        "template": "Could you please help me with the following question?\n\n{question}\n\n{format_instruction}\n\nThank you so much for your help!"
+      },
+      {
+        "id": "T6",
+        "name": "few_shot",
+        "template": "{examples}{question}\n\n{format_instruction}"
+      }
+    ],
+    "models": [
+      {
+        "arms": [
+          "B",
+          "T1",
+          "T2",
+          "T3",
+          "T4",
+          "T5",
+          "T6"
+        ],
+        "model_id": "claude-haiku-4-5",
+        "reasoning": null
+      },
+      {
+        "arms": [
+          "B",
+          "T1",
+          "T2",
+          "T3",
+          "T4",
+          "T5",
+          "T6"
+        ],
+        "model_id": "claude-sonnet-5",
+        "reasoning": null
+      },
+      {
+        "arms": [
+          "B",
+          "T1"
+        ],
+        "model_id": "claude-sonnet-5",
+        "reasoning": "adaptive"
+      }
+    ],
+    "stats": {
+      "alpha": 0.05,
+      "equivalence_bound_pp": 0.02,
+      "n_boot": 10000,
+      "seed": 42
+    },
+    "task_sets": [
+      {
+        "n": 449,
+        "name": "math"
+      },
+      {
+        "n": 250,
+        "name": "logic"
+      },
+      {
+        "n": 739,
+        "name": "procedural"
+      }
+    ]
+  }
+}
