@@ -88,7 +88,12 @@ per-token rates). Pricing constants and their expiry are documented in
 
 ## Freeze status
 
-**Not yet frozen.** `prereg/freeze.py::write_freeze()` has not been run. Task
-set Ns are still `null` pending the pilot (P2). The freeze will be committed,
-hashed, and gated (`check_freeze()`) before the full run (P3) — see
-`prereg/freeze.py` module docstring for the mechanism.
+**Frozen.** `prereg/freeze.py::write_freeze()` has been run and committed
+(`data/prereg_freeze.json`, config hash
+`9b8af804d62b0fec771fac4a2b7d86acc9f7fb27c639965b3fc98710482eedad`, commit
+`fb2b891`). Task set Ns, sized by the P2 pilot's power analysis: N=449
+(math), N=250 (logic — capped by BBH date_understanding's entire 250-row
+test split), N=739 (procedural — budget-capped from an ideal 1377).
+`check_freeze()` gates the full run (P3): it refuses to execute if anything
+in `prereg/config.py` has changed since this hash was written. P3 itself has
+not been run yet — no verdict exists until it is.
