@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from stats.bootstrap import Verdict, classify_verdict, paired_bootstrap_ci
+from stats.bootstrap import Verdict, classify_verdict, paired_bootstrap, paired_bootstrap_ci
 
 
 def test_mismatched_length_raises_value_error():
@@ -86,3 +86,19 @@ def test_small_n_noisy_signal_is_inconclusive():
 
     assert result.ci_lower < 0 < result.ci_upper
     assert classify_verdict(result) == Verdict.INCONCLUSIVE
+
+
+def test_paired_bootstrap_matches_paired_bootstrap_ci_and_boot_reproduces_ci():
+    rng = np.random.default_rng(321)
+    technique = (rng.random(60) > 0.42).tolist()
+    baseline = (rng.random(60) > 0.5).tolist()
+
+    result_ci = paired_bootstrap_ci(technique, baseline, seed=11)
+    result, boot = paired_bootstrap(technique, baseline, seed=11)
+
+    assert result == result_ci
+    assert boot.shape == (10_000,)
+
+    reproduced_lower, reproduced_upper = np.percentile(boot, [2.5, 97.5])
+    assert reproduced_lower == result.ci_lower
+    assert reproduced_upper == result.ci_upper
