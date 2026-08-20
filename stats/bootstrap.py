@@ -25,20 +25,23 @@ class BootstrapResult:
     seed: int
 
 
-def paired_bootstrap_ci(
+def paired_bootstrap(
     technique_correct: list[bool] | tuple[bool, ...],
     baseline_correct: list[bool] | tuple[bool, ...],
     n_boot: int = 10_000,
     seed: int = 42,
     alpha: float = 0.05,
-) -> BootstrapResult:
+) -> tuple[BootstrapResult, np.ndarray]:
     """Paired bootstrap CI over technique_correct[i] - baseline_correct[i].
 
     Both sequences must be the same length and paired by question index.
     Resamples question indices with replacement n_boot times (vectorized:
     one rng.integers draw), takes the mean paired delta per resample, and
     returns the (alpha/2, 1-alpha/2) percentile interval alongside the
-    observed (non-resampled) delta.
+    observed (non-resampled) delta -- plus the raw (n_boot,) array of
+    bootstrap mean-deltas the CI was cut from, so a p-value can be computed
+    from the IDENTICAL draws (same seed, same rng.integers call) rather than
+    a separate resample that could disagree with the CI.
     """
     if len(technique_correct) != len(baseline_correct):
         raise ValueError(
@@ -59,13 +62,30 @@ def paired_bootstrap_ci(
     ci_lower, ci_upper = np.percentile(boot, [100 * alpha / 2, 100 * (1 - alpha / 2)])
     delta = paired.mean()
 
-    return BootstrapResult(
+    result = BootstrapResult(
         delta=float(delta),
         ci_lower=float(ci_lower),
         ci_upper=float(ci_upper),
         n_boot=n_boot,
         seed=seed,
     )
+    return result, boot
+
+
+def paired_bootstrap_ci(
+    technique_correct: list[bool] | tuple[bool, ...],
+    baseline_correct: list[bool] | tuple[bool, ...],
+    n_boot: int = 10_000,
+    seed: int = 42,
+    alpha: float = 0.05,
+) -> BootstrapResult:
+    """Paired bootstrap CI over technique_correct[i] - baseline_correct[i].
+
+    Thin wrapper around paired_bootstrap() that discards the raw draws --
+    kept for existing callers that only need the CI. See paired_bootstrap()
+    for the full docstring.
+    """
+    return paired_bootstrap(technique_correct, baseline_correct, n_boot=n_boot, seed=seed, alpha=alpha)[0]
 
 
 class Verdict(str, Enum):

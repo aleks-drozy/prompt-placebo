@@ -97,3 +97,9 @@ test split), N=739 (procedural — budget-capped from an ideal 1377).
 `check_freeze()` gates the full run (P3): it refuses to execute if anything
 in `prereg/config.py` has changed since this hash was written. P3 itself has
 not been run yet — no verdict exists until it is.
+
+---
+
+*Post-freeze addendum (2026-08-08, results pointer only — nothing above this
+line has been altered): P3 has since been executed under this frozen config.
+Results: `data/p3_verdicts.json`, `docs/results.md`.*
